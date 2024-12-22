@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подарки</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary-color: #FF3CAC;
+            --secondary-color: #784BA0;
+            --background-color: #2B86C5;
+            --text-color: #ffffff;
+            --cloth-color-1: #f8f9fa;
+            --cloth-color-2: #e9ecef;
+            --cloth-shadow: rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--background-color));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #app {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .gift-container {
+    position: relative;
+    width: 400px; /* Ширина контейнера */
+    height: 600px; /* Высота контейнера */
+    margin: 50px auto; /* Центрирование по горизонтали и отступ сверху */
+    overflow: hidden;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+        .cloth-scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .cloth-wrapper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            animation: subtle-float 4s ease-in-out infinite;
+        }
+
+        /* Полотенце */
+        .cloth {
+    width: 80%;
+    height: 50%;
+    background: linear-gradient(135deg, 
+        var(--cloth-color-1) 0%, 
+        var(--cloth-color-2) 50%,
+        var(--cloth-color-1) 100%);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px var(--cloth-shadow);
+    transform-origin: center;
+    animation: subtle-float 3s ease-in-out infinite alternate;
+    position: relative;
+    overflow: hidden;
+}
+
+
+.cloth::before {
+    background: radial-gradient(circle at 30% 40%, 
+        rgba(0, 0, 0, 0.2) 0%, 
+        transparent 60%);
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+    animation: dent-move-1 2.5s ease-in-out forwards;
+}
+
+
+.cloth::after {
+    background: radial-gradient(circle at 70% 60%, 
+        rgba(0, 0, 0, 0.3) 0%, 
+        transparent 70%);
+    mix-blend-mode: multiply;
+    opacity: 0.4;
+    animation: dent-move-2 2.5s ease-in-out forwards;
+}
+
+
+/* .cloth::before,
+.cloth::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+    border-radius: inherit;
+} */
+
+/* Эффект текстуры и теней */
+.cloth-layer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.cloth-layer-1 { filter: url(#cloth-texture-1); }
+.cloth-layer-2 { filter: url(#cloth-texture-2); }
+.cloth-layer-3 { filter: url(#cloth-texture-3); }
+.cloth-layer-4 { filter: url(#cloth-texture-4); }
+
+/* Блик на полотенце */
+.cloth-highlight {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center,
+        rgba(255,255,255,0.8) 0%,
+        rgba(255,255,255,0) 50%);
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+    animation: highlight-move 5s ease-in-out infinite;
+}
+
+        .cloth-shadows {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle at 30% 30%,
+                rgba(0,0,0,0.1) 0%,
+                transparent 60%
+            );
+            filter: url(#shadow-texture);
+            pointer-events: none;
+        }
+
+        .cloth-bottom-shadow {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: radial-gradient(
+                ellipse at center,
+                var(--cloth-shadow) 0%,
+                transparent 70%
+            );
+            transform-origin: center top;
+            filter: blur(8px);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        @keyframes subtle-float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-5px) rotate(0.5deg);
+            }
+        }
+
+        @keyframes highlight-move {
+            0%, 100% {
+                transform: translate(-30%, -30%) rotate(0deg);
+            }
+            50% {
+                transform: translate(-20%, -20%) rotate(180deg);
+            }
+        }
+
+        .cloth.lifting {
+    animation: cloth-crumple-realistic 2.5s ease-in-out forwards, 
+               cloth-drop-realistic 1.5s ease-in-out forwards 2.5s;
+}
+
+
+@keyframes cloth-crumple-realistic {
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        transform: scale(0.85) rotate(5deg) skewX(5deg);
+    }
+    50% {
+        transform: scale(0.6) rotate(-10deg) skewY(-5deg);
+    }
+    75% {
+        transform: scale(0.4) rotate(5deg) skewX(10deg);
+    }
+    100% {
+        transform: scale(0.2) rotate(0deg) skewY(0deg);
+    }
+}
+
+@keyframes cloth-drop-realistic {
+    0% {
+        transform: translateY(0) scale(0.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(100%) scale(0.1);
+        opacity: 0;
+    }
+}
+
+@keyframes dent-move-1 {
+    0% {
+        transform: scale(1) translateX(0) translateY(0);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(0.8) translateX(-10px) translateY(10px);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(0.7) translateX(-20px) translateY(20px);
+        opacity: 0.8;
+    }
+}
+
+@keyframes dent-move-2 {
+    0% {
+        transform: scale(1) translateX(0) translateY(0);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(0.9) translateX(10px) translateY(-10px);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(0.8) translateX(20px) translateY(-20px);
+        opacity: 0.7;
+    }
+}
+
+/* Сжатие полотенца */
+@keyframes cloth-crumple {
+    0% {
+        transform: scale(1) rotate(0deg) translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.7) rotate(10deg) translateY(-10%);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(0.5) rotate(-10deg) translateY(0);
+        opacity: 0.8;
+    }
+}
+
+/* Падение полотенца */
+@keyframes cloth-drop {
+    0% {
+        transform: translateY(0) scale(0.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+}
+
+        @keyframes complex-lift {
+            0% {
+                transform: translateY(0) scale(1);
+                filter: url(#cloth-texture-1);
+            }
+            40% {
+                transform: translateY(-10%) scale(0.8);
+                filter: url(#cloth-texture-2);
+            }
+            60% {
+                transform: translateY(-5%) scale(0.6);
+                opacity: 0.8;
+                filter: url(#cloth-texture-3);
+            }
+            100% {
+                transform: translateY(100%) scale(0.5);
+                opacity: 0;
+                filter: url(#cloth-texture-4);
+            }
+        }
+
+        .cloth.lifting .cloth-bottom-shadow {
+            animation: shadow-fade 3s ease-in-out forwards;
+        }
+
+        @keyframes shadow-fade {
+            0% {
+                opacity: 0.6;
+                transform: scaleX(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scaleX(1.5);
+            }
+            100% {
+                opacity: 0;
+                transform: scaleX(2);
+            }
+        }
+
+        .gift-content {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0;
+    z-index: 5;
+    transition: opacity 1s ease-in-out;
+}
+
+.gift-content.visible {
+    opacity: 1;
+}
+
+#gift-message {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+}
+
+
+        @keyframes gift-appear {
+            0% {
+                transform: translateY(20px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .button-container {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 15;
+}
+
+.button {
+    padding: 10px 25px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: var(--button-color, #0078d4);
+    color: white;
+    border: none;
+}
+
+        .refresh-button {
+            background: linear-gradient(45deg, var(--secondary-color), var(--background-color));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::after,
+        .refresh-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255,255,255,0.3),
+                transparent
+            );
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+
+        .button:hover {
+    background-color: #005bb5;
+}
+        .button:hover,
+        .refresh-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .button:hover::after,
+        .refresh-button:hover::after {
+            left: 100%;
+        }
+
+        .button:active,
+        .refresh-button:active {
+            transform: translateY(1px);
+        }
+
+        .button:disabled,
+        .refresh-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            animation: confetti-fall 3s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: 
+                    translateY(-100vh) 
+                    rotate(0deg) 
+                    scale(1);
+            }
+            50% {
+                transform: 
+                    translateY(0) 
+                    rotate(180deg) 
+                    scale(0.5);
+            }
+            100% {
+                transform: 
+                    translateY(100vh) 
+                    rotate(360deg) 
+                    scale(0.2);
+            }
+        }
+
+
+        .cloth-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+
+    </style>
+</head>
+<body>
+    <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
+        <filter id="cloth-texture-1">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="5" seed="1" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" result="displacement1"/>
+            <feGaussianBlur in="displacement1" stdDeviation="0.5"/>
+        </filter>
+
+        <filter id="cloth-texture-2">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="6" seed="2" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" result="displacement2"/>
+            <feGaussianBlur in="displacement2" stdDeviation="0.8"/>
+        </filter>
+
+        <filter id="cloth-texture-3">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="7" seed="3" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" result="displacement3"/>
+            <feGaussianBlur in="displacement3" stdDeviation="1"/>
+        </filter>
+
+        <filter id="cloth-texture-4">
+            <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="8" seed="4" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" result="displacement4"/>
+            <feGaussianBlur in="displacement4" stdDeviation="1.2"/>
+        </filter>
+
+        <filter id="shadow-texture">
+            <feTurbulence type="turbulence" baseFrequency="0.03" numOctaves="4" seed="5" result="shadowNoise"/>
+            <feDisplacementMap in="SourceGraphic" in2="shadowNoise" scale="10"/>
+            <feGaussianBlur stdDeviation="2"/>
+        </filter>
+    </svg>
+
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <h2>Загрузка подарков...</h2>
+        </div>
+    </div>
+
+    <div id="app">
+        <h1>Твой подарок ждет тебя!</h1>
+        <div class="gift-container">
+            <!-- Полотенце на переднем плане -->
+            <div class="gift-container">
+                <!-- Полотенце на переднем плане -->
+                <div class="cloth-overlay">
+                    <div class="cloth">
+                        <div class="cloth-layer cloth-layer-1"></div>
+                        <div class="cloth-layer cloth-layer-2"></div>
+                        <div class="cloth-layer cloth-layer-3"></div>
+                        <div class="cloth-layer cloth-layer-4"></div>
+                        <div class="cloth-highlight"></div>
+                        <div class="cloth-shadows"></div>
+                    </div>
+                </div>
+            
+                <!-- Контент подарка -->
+                <div class="gift-content">
+                    <div id="gift-message"></div>
+                </div>
+            
+                <!-- Кнопка внизу -->
+                <div class="button-container">
+                    <button id="openGiftBtn" class="button" onclick="openGift()">🎁 Открыть подарок</button>
+                </div>
+            </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let tg;
+
+        // Проверка готовности страницы
+        let pageLoaded = false;
+        let telegramReady = false;
+
+        // Инициализация при загрузке DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Инициализация Telegram WebApp
+                if (window.Telegram && window.Telegram.WebApp) {
+                    tg = window.Telegram.WebApp;
+                    tg.expand();
+                    telegramReady = true;
+                    console.log('Telegram WebApp initialized successfully');
+                } else {
+                    throw new Error('Telegram WebApp not available');
+                }
+            } catch (error) {
+                console.error('Telegram WebApp initialization error:', error);
+                showError('Пожалуйста, откройте приложение через Telegram');
+                return;
+            }
+
+            // Показываем приложение после короткой загрузки
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                
+                // Добавляем начальную анимацию ткани
+                const clothWrapper = document.querySelector('.cloth-wrapper');
+                if (clothWrapper) {
+                    addWindEffect(clothWrapper);
+                }
+            }, 2000);
+        });
+
+        // Функция для показа ошибок
+        function showError(message) {
+            document.getElementById('loader').innerHTML = `
+                <div class="loader-content">
+                    <h2>Ошибка</h2>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // Создание реалистичного конфетти
+        function createConfetti() {
+            const colors = ['#FF3CAC', '#784BA0', '#2B86C5', '#FFD700', '#FF6B6B'];
+            const shapes = ['circle', 'square', 'triangle'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = color;
+                confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                confetti.style.height = confetti.style.width;
+                
+                if (shape === 'triangle') {
+                    confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+                } else if (shape === 'square') {
+                    confetti.style.borderRadius = '0';
+                }
+                
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                confetti.style.animationDelay = Math.random() + 's';
+                
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+
+        // Функция добавления эффекта ветра
+        function addWindEffect(cloth) {
+            const windStrength = 2;
+            let time = 0;
+            
+            function animate() {
+                time += 0.01;
+                const windX = Math.sin(time) * windStrength;
+                const windY = Math.cos(time * 1.5) * windStrength;
+                
+                cloth.style.transform = `translate(${windX}px, ${windY}px) rotate(${windX * 0.5}deg)`;
+                
+                if (!cloth.classList.contains('lifting')) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            animate();
+        }
+
+        // Функция обновления подарка
+        function refreshGift() {
+            const cloth = document.querySelector('.cloth');
+            const giftContent = document.querySelector('.gift-content');
+            const openButton = document.getElementById('openGiftBtn');
+            const refreshButton = document.getElementById('refreshBtn');
+
+            // Сбрасываем состояния
+            cloth.classList.remove('lifting');
+            giftContent.classList.remove('visible');
+            giftContent.style.opacity = '0';
+            openButton.disabled = false;
+            refreshButton.style.display = 'none';
+
+            // Очищаем конфетти
+            document.querySelectorAll('.confetti').forEach(el => el.remove());
+
+            // Добавляем эффект ветра заново
+            const clothWrapper = document.querySelector('.cloth-wrapper');
+            if (clothWrapper) {
+                addWindEffect(clothWrapper);
+            }
+        }
+
+        // Функция открытия подарка
+        async function openGift() {
+    const button = document.getElementById('openGiftBtn');
+    const cloth = document.querySelector('.cloth');
+    const giftContent = document.querySelector('.gift-content');
+    const giftMessage = document.getElementById('gift-message');
+    
+    if (button.disabled) return;
+    button.disabled = true;
+
+    try {
+        // Запуск анимации
+        cloth.classList.add('lifting');
+
+        setTimeout(async () => {
+            giftMessage.innerHTML = `
+                <h3>🎉 Поздравляем!</h3>
+                <p>Ваш подарок: Новая мышка Logitech G Pro!</p>
+            `;
+            giftContent.classList.add('visible');
+        }, 3500); // После завершения анимации
+    } catch (error) {
+        console.error('Ошибка:', error);
+        giftMessage.innerHTML = `<p>Ошибка при получении подарка</p>`;
+        giftContent.classList.add('visible');
+    } finally {
+        setTimeout(() => {
+            button.disabled = false;
+        }, 4000);
+    }
+}
+
+        // Проверка соединения при загрузке
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                if (!response.ok) {
+                    throw new Error('Server is not responding');
+                }
+            } catch (error) {
+                console.error('Connection error:', error);
+                document.getElementById('gift-message').innerHTML = `
+                    <div style="animation: fadeIn 1s ease-out;">
+                        <p style="color: #dc3545;">
+                            Не удалось подключиться к серверу. 
+                            Пожалуйста, проверьте подключение к интернету.
+                        </p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
