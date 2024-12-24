@@ -81,37 +81,20 @@
         }
 
         .gift-container {
-    position: relative;
-    width: 400px; /* Ширина контейнера */
-    height: 600px; /* Высота контейнера */
-    margin: 50px auto; /* Центрирование по горизонтали и отступ сверху */
-    overflow: hidden;
-    background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-        .cloth-scene {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
-            cursor: pointer;
+            position: relative;
+            width: 300px;
+            height: 400px;
+            margin: 30px auto;
+            overflow: hidden;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        .cloth-wrapper {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
-            animation: subtle-float 4s ease-in-out infinite;
-        }
-
-        /* Полотенце */
         .cloth {
     width: 80%;
     height: 50%;
@@ -120,35 +103,229 @@
         var(--cloth-color-2) 50%,
         var(--cloth-color-1) 100%);
     border-radius: 15px;
-    box-shadow: 0 10px 25px var(--cloth-shadow);
+    box-shadow: 
+        inset -5px -5px 15px rgba(0,0,0,0.1),
+        inset 5px 5px 15px rgba(255,255,255,0.1),
+        0 10px 25px var(--cloth-shadow);
     transform-origin: center;
-    animation: subtle-float 3s ease-in-out infinite alternate;
     position: relative;
     overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+        /* Новая улучшенная анимация складывания */
+        .cloth.lifting {
+    animation: 
+        fold-in-half 1s ease-in-out,
+        fold-quarter 1s ease-in-out 1s,
+        fold-final 1s ease-in-out 2s,
+        fold-crumple 0.5s ease-in-out 3s,
+        fold-fade 0.5s ease-in-out 3.5s forwards;
 }
 
 
-.cloth::before {
-    background: radial-gradient(circle at 30% 40%, 
-        rgba(0, 0, 0, 0.2) 0%, 
-        transparent 60%);
+/* Первое складывание пополам */
+@keyframes fold-in-half {
+    0% {
+        transform: perspective(1000px) rotateX(0) translateY(0);
+        filter: brightness(1);
+    }
+    50% {
+        transform: perspective(1000px) rotateX(30deg) translateY(-10%);
+        filter: brightness(0.95);
+    }
+    100% {
+        transform: perspective(1000px) rotateX(0) translateY(-25%);
+        filter: brightness(0.9);
+    }
+}
+
+
+@keyframes fold-quarter {
+    0% {
+        transform: perspective(1000px) rotateX(0) translateY(-25%) scaleY(0.5);
+    }
+    50% {
+        transform: perspective(1000px) rotateY(30deg) translateY(-25%) translateX(-10%) scaleY(0.5);
+    }
+    100% {
+        transform: perspective(1000px) rotateY(0) translateY(-25%) translateX(-25%) scaleY(0.5) scaleX(0.5);
+    }
+}
+
+
+@keyframes fold-final {
+    0% {
+        transform: perspective(1000px) translateY(-25%) translateX(-25%) scale(0.25);
+        border-radius: 15px;
+    }
+    33% {
+        transform: perspective(1000px) rotateZ(10deg) translateY(-25%) translateX(-25%) scale(0.23);
+        border-radius: 15px 20px 10px 25px;
+    }
+    66% {
+        transform: perspective(1000px) rotateZ(-5deg) translateY(-25%) translateX(-25%) scale(0.21);
+        border-radius: 20px 10px 25px 15px;
+    }
+    100% {
+        transform: perspective(1000px) rotateZ(0) translateY(-25%) translateX(-25%) scale(0.2);
+        border-radius: 10px 25px 15px 20px;
+    }
+}
+
+
+@keyframes fold-crumple {
+    0% {
+        transform: perspective(1000px) scale(0.2);
+        border-radius: 10px 25px 15px 20px;
+    }
+    25% {
+        transform: perspective(1000px) scale(0.18) rotateX(10deg) rotateY(5deg);
+        border-radius: 15px 10px 25px 20px;
+    }
+    50% {
+        transform: perspective(1000px) scale(0.16) rotateX(-5deg) rotateY(10deg);
+        border-radius: 20px 25px 10px 15px;
+    }
+    75% {
+        transform: perspective(1000px) scale(0.14) rotateX(15deg) rotateY(-5deg);
+        border-radius: 25px 15px 20px 10px;
+    }
+    100% {
+        transform: perspective(1000px) scale(0.12);
+        border-radius: 15px 20px 25px 10px;
+    }
+}
+
+/* Исчезновение */
+@keyframes fold-fade {
+    0% {
+        transform: perspective(1000px) scale(0.12) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: perspective(1000px) scale(0.1) translateY(100px);
+        opacity: 0;
+    }
+}
+
+
+/* Добавляем эффект вмятин */
+.cloth-dent {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        circle at var(--x, 50%) var(--y, 50%),
+        rgba(0,0,0,0.2) 0%,
+        transparent 50%
+    );
+    filter: blur(5px);
     mix-blend-mode: multiply;
-    opacity: 0.5;
-    animation: dent-move-1 2.5s ease-in-out forwards;
 }
 
 
-.cloth::after {
-    background: radial-gradient(circle at 70% 60%, 
-        rgba(0, 0, 0, 0.3) 0%, 
-        transparent 70%);
-    mix-blend-mode: multiply;
-    opacity: 0.4;
-    animation: dent-move-2 2.5s ease-in-out forwards;
+.cloth.lifting .cloth-dent {
+    animation: dent-appear 3.5s ease-in-out forwards;
+}
+
+@keyframes dent-appear {
+    0% {
+        opacity: 0;
+        --x: 30%;
+        --y: 30%;
+    }
+    20% {
+        opacity: 0.3;
+        --x: 40%;
+        --y: 35%;
+    }
+    40% {
+        opacity: 0.5;
+        --x: 35%;
+        --y: 45%;
+    }
+    60% {
+        opacity: 0.7;
+        --x: 45%;
+        --y: 40%;
+    }
+    80% {
+        opacity: 0.5;
+        --x: 40%;
+        --y: 50%;
+    }
+    100% {
+        opacity: 0;
+        --x: 50%;
+        --y: 50%;
+    }
 }
 
 
-/* .cloth::before,
+        @keyframes fold-vertical {
+            0% {
+                transform: scale(1) perspective(1000px);
+            }
+            50% {
+                transform: scale(0.8) perspective(1000px) rotateX(45deg);
+            }
+            100% {
+                transform: scale(0.6) perspective(1000px) rotateX(90deg);
+            }
+        }
+
+        @keyframes fold-horizontal {
+            0% {
+                transform: scale(0.6) perspective(1000px) rotateX(90deg);
+            }
+            50% {
+                transform: scale(0.5) perspective(1000px) rotateX(90deg) rotateY(45deg);
+            }
+            100% {
+                transform: scale(0.4) perspective(1000px) rotateX(90deg) rotateY(90deg);
+            }
+        }
+
+        @keyframes crumple {
+            0% {
+                transform: scale(0.4) perspective(1000px) rotateX(90deg) rotateY(90deg);
+                border-radius: 15px;
+            }
+            25% {
+                transform: scale(0.35) perspective(1000px) rotateX(100deg) rotateY(85deg) rotateZ(10deg);
+                border-radius: 20px 10px 15px 25px;
+            }
+            50% {
+                transform: scale(0.3) perspective(1000px) rotateX(95deg) rotateY(95deg) rotateZ(-15deg);
+                border-radius: 15px 25px 10px 20px;
+            }
+            75% {
+                transform: scale(0.25) perspective(1000px) rotateX(85deg) rotateY(100deg) rotateZ(20deg);
+                border-radius: 25px 15px 20px 10px;
+            }
+            100% {
+                transform: scale(0.2) perspective(1000px) rotateX(90deg) rotateY(90deg) rotateZ(0deg);
+                border-radius: 10px 20px 15px 25px;
+            }
+        }
+
+        @keyframes fade-out {
+            0% {
+                opacity: 1;
+                transform: scale(0.2) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.1) translateY(100px);
+            }
+        }
+
+        .cloth::before,
 .cloth::after {
     content: '';
     position: absolute;
@@ -157,410 +334,124 @@
     top: 0;
     left: 0;
     pointer-events: none;
-    z-index: 5;
-    border-radius: inherit;
-} */
-
-/* Эффект текстуры и теней */
-.cloth-layer {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0.7;
-    pointer-events: none;
+    transition: all 0.5s ease;
 }
 
-.cloth-layer-1 { filter: url(#cloth-texture-1); }
-.cloth-layer-2 { filter: url(#cloth-texture-2); }
-.cloth-layer-3 { filter: url(#cloth-texture-3); }
-.cloth-layer-4 { filter: url(#cloth-texture-4); }
 
-/* Блик на полотенце */
-.cloth-highlight {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at center,
-        rgba(255,255,255,0.8) 0%,
-        rgba(255,255,255,0) 50%);
-    opacity: 0.4;
-    mix-blend-mode: overlay;
-    animation: highlight-move 5s ease-in-out infinite;
+.cloth::after {
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(0,0,0,0.05) 48%,
+        rgba(0,0,0,0.1) 50%,
+        rgba(0,0,0,0.05) 52%,
+        transparent 100%);
+    transform-origin: center;
 }
 
-        .cloth-shadows {
+
+.cloth::before {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0,0,0,0.05) 48%,
+        rgba(0,0,0,0.1) 50%,
+        rgba(0,0,0,0.05) 52%,
+        transparent 100%);
+    transform-origin: center;
+}
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            20% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .cloth-fold {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(
-                circle at 30% 30%,
-                rgba(0,0,0,0.1) 0%,
-                transparent 60%
-            );
-            filter: url(#shadow-texture);
-            pointer-events: none;
+            background: var(--cloth-color-2);
+            opacity: 0.5;
+            transition: all 0.3s ease;
         }
 
-        .cloth-bottom-shadow {
-            position: absolute;
-            bottom: -20px;
-            left: 0;
-            width: 100%;
-            height: 40px;
-            background: radial-gradient(
-                ellipse at center,
-                var(--cloth-shadow) 0%,
-                transparent 70%
-            );
-            transform-origin: center top;
-            filter: blur(8px);
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        @keyframes subtle-float {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-5px) rotate(0.5deg);
-            }
-        }
-
-        @keyframes highlight-move {
-            0%, 100% {
-                transform: translate(-30%, -30%) rotate(0deg);
-            }
-            50% {
-                transform: translate(-20%, -20%) rotate(180deg);
-            }
-        }
-
-        .cloth.lifting {
-    animation: cloth-crumple-realistic 2.5s ease-in-out forwards, 
-               cloth-drop-realistic 1.5s ease-in-out forwards 2.5s;
-}
-
-
-@keyframes cloth-crumple-realistic {
-    0% {
-        transform: scale(1) rotate(0deg);
-    }
-    25% {
-        transform: scale(0.85) rotate(5deg) skewX(5deg);
-    }
-    50% {
-        transform: scale(0.6) rotate(-10deg) skewY(-5deg);
-    }
-    75% {
-        transform: scale(0.4) rotate(5deg) skewX(10deg);
-    }
-    100% {
-        transform: scale(0.2) rotate(0deg) skewY(0deg);
-    }
-}
-
-@keyframes cloth-drop-realistic {
-    0% {
-        transform: translateY(0) scale(0.2);
-        opacity: 0.8;
-    }
-    100% {
-        transform: translateY(100%) scale(0.1);
-        opacity: 0;
-    }
-}
-
-@keyframes dent-move-1 {
-    0% {
-        transform: scale(1) translateX(0) translateY(0);
-        opacity: 0.5;
-    }
-    50% {
-        transform: scale(0.8) translateX(-10px) translateY(10px);
-        opacity: 0.6;
-    }
-    100% {
-        transform: scale(0.7) translateX(-20px) translateY(20px);
-        opacity: 0.8;
-    }
-}
-
-@keyframes dent-move-2 {
-    0% {
-        transform: scale(1) translateX(0) translateY(0);
-        opacity: 0.4;
-    }
-    50% {
-        transform: scale(0.9) translateX(10px) translateY(-10px);
-        opacity: 0.5;
-    }
-    100% {
-        transform: scale(0.8) translateX(20px) translateY(-20px);
-        opacity: 0.7;
-    }
-}
-
-/* Сжатие полотенца */
-@keyframes cloth-crumple {
-    0% {
-        transform: scale(1) rotate(0deg) translateY(0);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(0.7) rotate(10deg) translateY(-10%);
-        opacity: 0.9;
-    }
-    100% {
-        transform: scale(0.5) rotate(-10deg) translateY(0);
-        opacity: 0.8;
-    }
-}
-
-/* Падение полотенца */
-@keyframes cloth-drop {
-    0% {
-        transform: translateY(0) scale(0.5);
-        opacity: 0.8;
-    }
-    100% {
-        transform: translateY(100vh) scale(0.3);
-        opacity: 0;
-    }
-}
-
-        @keyframes complex-lift {
-            0% {
-                transform: translateY(0) scale(1);
-                filter: url(#cloth-texture-1);
-            }
-            40% {
-                transform: translateY(-10%) scale(0.8);
-                filter: url(#cloth-texture-2);
-            }
-            60% {
-                transform: translateY(-5%) scale(0.6);
-                opacity: 0.8;
-                filter: url(#cloth-texture-3);
-            }
-            100% {
-                transform: translateY(100%) scale(0.5);
-                opacity: 0;
-                filter: url(#cloth-texture-4);
-            }
-        }
-
-        .cloth.lifting .cloth-bottom-shadow {
-            animation: shadow-fade 3s ease-in-out forwards;
-        }
-
-        @keyframes shadow-fade {
-            0% {
-                opacity: 0.6;
-                transform: scaleX(1);
-            }
-            50% {
-                opacity: 0.3;
-                transform: scaleX(1.5);
-            }
-            100% {
-                opacity: 0;
-                transform: scaleX(2);
-            }
-        }
+        .fold-left { left: 0; height: 100%; width: 1px; }
+        .fold-right { right: 0; height: 100%; width: 1px; }
+        .fold-top { top: 0; width: 100%; height: 1px; }
+        .fold-bottom { bottom: 0; width: 100%; height: 1px; }
 
         .gift-content {
-    position: absolute;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    color: var(--text-color);
-    opacity: 0;
-    z-index: 5;
-    transition: opacity 1s ease-in-out;
-}
-
-.gift-content.visible {
-    opacity: 1;
-}
-
-#gift-message {
-    font-size: 18px;
-    font-weight: 500;
-    color: #333;
-}
-
-
-        @keyframes gift-appear {
-            0% {
-                transform: translateY(20px);
-            }
-            100% {
-                transform: translateY(0);
-            }
-        }
-
-        .button-container {
-    position: absolute;
-    bottom: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    z-index: 15;
-}
-
-.button {
-    padding: 10px 25px;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 5px;
-    background-color: var(--button-color, #0078d4);
-    color: white;
-    border: none;
-}
-
-        .refresh-button {
-            background: linear-gradient(45deg, var(--secondary-color), var(--background-color));
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .button::after,
-        .refresh-button::after {
-            content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent,
-                rgba(255,255,255,0.3),
-                transparent
-            );
-            transform: rotate(45deg);
-            transition: 0.5s;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #333;
+            opacity: 0;
+            z-index: 5;
+            transition: opacity 0.5s ease-in-out;
         }
 
-        .button:hover {
-    background-color: #005bb5;
-}
-        .button:hover,
-        .refresh-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-
-        .button:hover::after,
-        .refresh-button:hover::after {
-            left: 100%;
-        }
-
-        .button:active,
-        .refresh-button:active {
-            transform: translateY(1px);
-        }
-
-        .button:disabled,
-        .refresh-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .gift-content.visible {
+            opacity: 1;
         }
 
         .confetti {
             position: fixed;
-            width: 10px;
-            height: 10px;
-            background-color: #f0f;
-            animation: confetti-fall 3s linear infinite;
+            z-index: 1000;
+            animation: confetti-fall 3s ease-in-out forwards;
             pointer-events: none;
         }
 
         @keyframes confetti-fall {
             0% {
-                transform: 
-                    translateY(-100vh) 
-                    rotate(0deg) 
-                    scale(1);
+                transform: translateY(-100vh) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-50vh) rotate(90deg);
             }
             50% {
-                transform: 
-                    translateY(0) 
-                    rotate(180deg) 
-                    scale(0.5);
+                transform: translateY(0) rotate(180deg);
+            }
+            75% {
+                transform: translateY(50vh) rotate(270deg);
             }
             100% {
-                transform: 
-                    translateY(100vh) 
-                    rotate(360deg) 
-                    scale(0.2);
+                transform: translateY(100vh) rotate(360deg);
             }
         }
 
+        .button-container {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 15;
+        }
 
-        .cloth-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    pointer-events: none;
-}
+        .button {
+            padding: 12px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 25px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
 
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
 
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
-    <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
-        <filter id="cloth-texture-1">
-            <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="5" seed="1" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" result="displacement1"/>
-            <feGaussianBlur in="displacement1" stdDeviation="0.5"/>
-        </filter>
-
-        <filter id="cloth-texture-2">
-            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="6" seed="2" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" result="displacement2"/>
-            <feGaussianBlur in="displacement2" stdDeviation="0.8"/>
-        </filter>
-
-        <filter id="cloth-texture-3">
-            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="7" seed="3" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" result="displacement3"/>
-            <feGaussianBlur in="displacement3" stdDeviation="1"/>
-        </filter>
-
-        <filter id="cloth-texture-4">
-            <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="8" seed="4" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" result="displacement4"/>
-            <feGaussianBlur in="displacement4" stdDeviation="1.2"/>
-        </filter>
-
-        <filter id="shadow-texture">
-            <feTurbulence type="turbulence" baseFrequency="0.03" numOctaves="4" seed="5" result="shadowNoise"/>
-            <feDisplacementMap in="SourceGraphic" in2="shadowNoise" scale="10"/>
-            <feGaussianBlur stdDeviation="2"/>
-        </filter>
-    </svg>
-
     <div id="loader">
         <div class="loader-content">
             <div class="loader-spinner"></div>
@@ -571,50 +462,37 @@
     <div id="app">
         <h1>Твой подарок ждет тебя!</h1>
         <div class="gift-container">
-            <!-- Полотенце на переднем плане -->
-            <div class="gift-container">
-                <!-- Полотенце на переднем плане -->
-                <div class="cloth-overlay">
-                    <div class="cloth">
-                        <div class="cloth-layer cloth-layer-1"></div>
-                        <div class="cloth-layer cloth-layer-2"></div>
-                        <div class="cloth-layer cloth-layer-3"></div>
-                        <div class="cloth-layer cloth-layer-4"></div>
-                        <div class="cloth-highlight"></div>
-                        <div class="cloth-shadows"></div>
-                    </div>
-                </div>
-            
-                <!-- Контент подарка -->
-                <div class="gift-content">
-                    <div id="gift-message"></div>
-                </div>
-            
-                <!-- Кнопка внизу -->
-                <div class="button-container">
-                    <button id="openGiftBtn" class="button" onclick="openGift()">🎁 Открыть подарок</button>
-                </div>
+            <div class="cloth">
+                <div class="cloth-dent"></div>
+                <div class="cloth-dent" style="--x: 70%; --y: 60%"></div>
+                <div class="cloth-dent" style="--x: 40%; --y: 75%"></div>
+                <div class="cloth-fold fold-left"></div>
+                <div class="cloth-fold fold-right"></div>
+                <div class="cloth-fold fold-top"></div>
+                <div class="cloth-fold fold-bottom"></div>
             </div>
+
+            <div class="gift-content">
+                <div id="gift-message"></div>
+            </div>
+
+            <div class="button-container">
+                <button id="openGiftBtn" class="button" onclick="openGift()">🎁 Открыть подарок</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const API_URL = 'http://localhost:3000';
         let tg;
+        let giftRevealed = false;
 
-        // Проверка готовности страницы
-        let pageLoaded = false;
-        let telegramReady = false;
-
-        // Инициализация при загрузке DOM
         document.addEventListener('DOMContentLoaded', () => {
             try {
-                // Инициализация Telegram WebApp
                 if (window.Telegram && window.Telegram.WebApp) {
                     tg = window.Telegram.WebApp;
                     tg.expand();
-                    telegramReady = true;
                     console.log('Telegram WebApp initialized successfully');
-                } else {
-                    throw new Error('Telegram WebApp not available');
                 }
             } catch (error) {
                 console.error('Telegram WebApp initialization error:', error);
@@ -622,20 +500,12 @@
                 return;
             }
 
-            // Показываем приложение после короткой загрузки
             setTimeout(() => {
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('app').style.display = 'block';
-                
-                // Добавляем начальную анимацию ткани
-                const clothWrapper = document.querySelector('.cloth-wrapper');
-                if (clothWrapper) {
-                    addWindEffect(clothWrapper);
-                }
-            }, 2000);
+            }, 1500);
         });
 
-        // Функция для показа ошибок
         function showError(message) {
             document.getElementById('loader').innerHTML = `
                 <div class="loader-content">
@@ -645,112 +515,81 @@
             `;
         }
 
-        // Создание реалистичного конфетти
         function createConfetti() {
             const colors = ['#FF3CAC', '#784BA0', '#2B86C5', '#FFD700', '#FF6B6B'];
             const shapes = ['circle', 'square', 'triangle'];
             
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const shape = shapes[Math.floor(Math.random() * shapes.length)];
-                
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.backgroundColor = color;
-                confetti.style.width = (Math.random() * 10 + 5) + 'px';
-                confetti.style.height = confetti.style.width;
-                
-                if (shape === 'triangle') {
-                    confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
-                } else if (shape === 'square') {
-                    confetti.style.borderRadius = '0';
-                }
-                
-                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                confetti.style.animationDelay = Math.random() + 's';
-                
-                document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 4000);
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                    
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = color;
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = confetti.style.width;
+                    
+                    if (shape === 'triangle') {
+                        confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+                    } else if (shape === 'square') {
+                        confetti.style.borderRadius = '0';
+                    }
+                    
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 50); // Задержка для каждого конфетти
             }
         }
 
-        // Функция добавления эффекта ветра
-        function addWindEffect(cloth) {
-            const windStrength = 2;
-            let time = 0;
+        async function openGift() {
+            if (giftRevealed) return;
             
-            function animate() {
-                time += 0.01;
-                const windX = Math.sin(time) * windStrength;
-                const windY = Math.cos(time * 1.5) * windStrength;
-                
-                cloth.style.transform = `translate(${windX}px, ${windY}px) rotate(${windX * 0.5}deg)`;
-                
-                if (!cloth.classList.contains('lifting')) {
-                    requestAnimationFrame(animate);
-                }
-            }
-            
-            animate();
-        }
-
-        // Функция обновления подарка
-        function refreshGift() {
+            const button = document.getElementById('openGiftBtn');
             const cloth = document.querySelector('.cloth');
             const giftContent = document.querySelector('.gift-content');
-            const openButton = document.getElementById('openGiftBtn');
-            const refreshButton = document.getElementById('refreshBtn');
+            const giftMessage = document.getElementById('gift-message');
+            
+            button.disabled = true;
+            
+            try {
+                // Начинаем анимацию складывания
+                cloth.classList.add('lifting');
 
-            // Сбрасываем состояния
-            cloth.classList.remove('lifting');
-            giftContent.classList.remove('visible');
-            giftContent.style.opacity = '0';
-            openButton.disabled = false;
-            refreshButton.style.display = 'none';
+                // Показываем подарок после анимации складывания
+                setTimeout(() => {
+                    giftMessage.innerHTML = `
+                        <h3>🎉 Поздравляем!</h3>
+                        <p>Ваш подарок: Новая мышка Logitech G Pro!</p>
+                    `;
+                    giftContent.classList.add('visible');
+                    giftRevealed = true;
 
-            // Очищаем конфетти
-            document.querySelectorAll('.confetti').forEach(el => el.remove());
+                    // Запускаем конфетти только после появления подарка
+                    setTimeout(createConfetti, 500);
+                }, 3000);
 
-            // Добавляем эффект ветра заново
-            const clothWrapper = document.querySelector('.cloth-wrapper');
-            if (clothWrapper) {
-                addWindEffect(clothWrapper);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                giftMessage.innerHTML = `
+                    <div style="color: #dc3545;">
+                        <h3>⚠️ Упс!</h3>
+                        <p>Произошла ошибка при получении подарка</p>
+                    </div>
+                `;
+                giftContent.classList.add('visible');
+            } finally {
+                // Обновляем состояние кнопки через 4 секунды
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = giftRevealed ? '✨ Подарок получен!' : '🎁 Открыть подарок';
+                }, 4000);
             }
         }
-
-        // Функция открытия подарка
-        async function openGift() {
-    const button = document.getElementById('openGiftBtn');
-    const cloth = document.querySelector('.cloth');
-    const giftContent = document.querySelector('.gift-content');
-    const giftMessage = document.getElementById('gift-message');
-    
-    if (button.disabled) return;
-    button.disabled = true;
-
-    try {
-        // Запуск анимации
-        cloth.classList.add('lifting');
-
-        setTimeout(async () => {
-            giftMessage.innerHTML = `
-                <h3>🎉 Поздравляем!</h3>
-                <p>Ваш подарок: Новая мышка Logitech G Pro!</p>
-            `;
-            giftContent.classList.add('visible');
-        }, 3500); // После завершения анимации
-    } catch (error) {
-        console.error('Ошибка:', error);
-        giftMessage.innerHTML = `<p>Ошибка при получении подарка</p>`;
-        giftContent.classList.add('visible');
-    } finally {
-        setTimeout(() => {
-            button.disabled = false;
-        }, 4000);
-    }
-}
 
         // Проверка соединения при загрузке
         window.addEventListener('load', async () => {
@@ -770,6 +609,20 @@
                     </div>
                 `;
             }
+        });
+
+        // Добавляем обработчик для анимации hover на кнопке
+        const button = document.getElementById('openGiftBtn');
+        button.addEventListener('mouseover', () => {
+            if (!button.disabled) {
+                button.style.transform = 'translateY(-2px)';
+                button.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+            }
+        });
+
+        button.addEventListener('mouseout', () => {
+            button.style.transform = '';
+            button.style.boxShadow = '';
         });
     </script>
 </body>
